@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperDrive // Elite Automotive Showroom</title>
+    <style>
+        :root {
+            --bg-dark: #0a0a0c;
+            --bg-card: #14141c;
+            --bg-modal: #181824;
+            --cyan: #00f3ff;
+            --cyan-glow: rgba(0, 243, 255, 0.2);
+            --text-light: #ffffff;
+            --text-gray: #94a3b8;
+            --border: #222234;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        header h1 span {
+            color: var(--cyan);
+            text-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        header p {
+            color: var(--text-gray);
+            margin-top: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto 3rem auto;
+            display: block;
+            padding: 0.8rem 1.2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-light);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+
+        .showroom-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .car-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .car-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--cyan);
+            box-shadow: 0 8px 20px var(--cyan-glow);
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: 200px;
+            background: #111118;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s;
+        }
+
+        .car-card:hover .image-wrapper img {
+            transform: scale(1.05);
+        }
+
+        .fallback-ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #161622 0%, #0d0d14 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--cyan);
+            font-weight: 800;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .fallback-logo {
+            font-size: 2rem;
+            text-shadow: 0 0 10px var(--cyan-glow);
+            margin-bottom: 0.25rem;
+        }
+
+        .fallback-text {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-gray);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-brand {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--cyan);
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-bottom: 0.25rem;
+        }
+
+        .card-model {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-gray);
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-top: auto;
+        }
+
+        .meta-highlight {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(4, 4, 6, 0.9);
+            backdrop-filter: blur(6px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-window {
+            background: var(--bg-modal);
+            border: 1px solid var(--cyan);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 0 35px rgba(0, 243, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--border);
+            color: var(--text-light);
+            font-size: 1.5rem;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+
+        .close-btn:hover {
+            background: #ef4444;
+            border-color: #ef4444;
+        }
+
+        .modal-view-image {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            background: #111118;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header {
+            padding: 1.5rem 2rem 0.5rem 2rem;
+        }
+
+        .modal-brand {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            color: var(--cyan);
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-top: 0.25rem;
+        }
+
+        .modal-body {
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        .modal-desc {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .spec-box {
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+        }
+
+        .spec-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-gray);
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .spec-data {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        @media (max-width: 600px) {
+            .specs-grid { grid-template-columns: 1fr; }
+            .modal-body, .modal-header { padding: 1rem; }
+            .modal-title { font-size: 1.5rem; }
+            .modal-view-image { height: 180px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Hyper<span>Showroom</span></h1>
+            <p>15 Global Engineering Icons. Click any car profile to reveal dynamic mechanical architecture.</p>
+        </header>
+
+        <input type="text" class="search-bar" id="search" placeholder="Type to filter cars by brand or engine type..." oninput="filterCars()">
+
+        <main class="showroom-grid" id="showroomGrid"></main>
+    </div>
+
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-window">
+            <button class="close-btn" onclick="hideModal()">&times;</button>
+            <div style="position:relative; width:100%;">
+                <div id="mFallback" class="fallback-ui" style="display:none;">
+                    <div id="mFallbackLogo" class="fallback-logo"></div>
+                    <div class="fallback-text">Automotive Asset Profile</div>
+                </div>
+                <img id="mImage" class="modal-view-image" src="" alt="Showroom Detail Visual">
+            </div>
+            <div class="modal-header">
+                <div id="mBrand" class="modal-brand"></div>
+                <h2 id="mTitle" class="modal-title"></h2>
+            </div>
+            <div class="modal-body">
+                <p id="mDesc" class="modal-desc"></p>
+                <div class="specs-grid">
+                    <div class="spec-box"><div class="spec-label">Engine Architecture</div><div id="sEngine" class="spec-data"></div></div>
+                    <div class="spec-box"><div class="spec-label">Peak Horsepower</div><div id="sPower" class="spec-data"></div></div>
+                    <div class="spec-box"><div class="spec-label">0-100 km/h Sprint</div><div id="sAccel" class="spec-data"></div></div>
+                    <div class="spec-box"><div class="spec-label">V-Max Top Speed</div><div id="sSpeed" class="spec-data"></div></div>
+                    <div class="spec-box"><div class="spec-label">Production Year</div><div id="sYear" class="spec-data"></div></div>
+                    <div class="spec-box"><div class="spec-label">Market Value (Est.)</div><div id="sPrice" class="spec-data"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const carDatabase = [
+            {
+                brand: "Bugatti", model: "Chiron Super Sport", power: "1,578 BHP", year: "2022",
+                image: "https://images.unsplash.com/photo-1600706432502-75a0e2e31985?auto=format&fit=crop&w=600&q=80",
+                engine: "8.0L Quad-Turbocharged W16", accel: "2.2 Seconds", speed: "440 km/h", price: "$3,825,000",
+                desc: "The pinnacle of straight-line velocity engineering. The Chiron Super Sport handles continuous hyper-performance using custom magnesium wheels and targeted cooling structures."
+            },
+            {
+                brand: "Ferrari", model: "SF90 Stradale", power: "986 BHP", year: "2021",
+                image: "https://images.unsplash.com/photo-1583121274602-3e2820c69888?auto=format&fit=crop&w=600&q=80",
+                engine: "4.0L Twin-Turbo V8 + 3 Electric Motors", accel: "2.5 Seconds", speed: "340 km/h", price: "$524,000",
+                desc: "Maranello's modern hybrid powerhouse. Combining an aggressive combustion system with advanced torque-vectoring technology provides instantaneous response out of high-speed turns."
+            },
+            {
+                brand: "Porsche", model: "911 GT3 RS (992)", power: "518 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?auto=format&fit=crop&w=600&q=80",
+                engine: "4.0L Naturally Aspirated Flat-6", accel: "3.2 Seconds", speed: "296 km/h", price: "$223,800",
+                desc: "A pure track weapon engineered directly within a wind tunnel. Features an extreme active rear wing system and top-tier computational stability control settings."
+            },
+            {
+                brand: "Lamborghini", model: "Revuelto", power: "1,001 BHP", year: "2024",
+                image: "https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?auto=format&fit=crop&w=600&q=80",
+                engine: "6.5L Naturally Aspirated V12 Hybrid", accel: "2.5 Seconds", speed: "350 km/h", price: "$608,000",
+                desc: "Sant'Agata's premier high-performance electrified vehicle. Preserves the emotional roar of a classic non-turbo V12 engine balanced beautifully with smooth electric power."
+            },
+            {
+                brand: "McLaren", model: "750S Spider", power: "740 BHP", year: "2024",
+                image: "https://images.unsplash.com/photo-1562591188-12c6409d261e?auto=format&fit=crop&w=600&q=80",
+                engine: "4.0L Twin-Turbocharged V8", accel: "2.8 Seconds", speed: "332 km/h", price: "$345,000",
+                desc: "Succeeds the 720S by shedding weight and shortening gear ratios. Delivers highly accurate hydraulic steering dynamics inside a rigid structural carbon chassis."
+            },
+            {
+                brand: "Aston Martin", model: "Valkyrie", power: "1,139 BHP", year: "2022",
+                image: "https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?auto=format&fit=crop&w=600&q=80",
+                engine: "6.5L Cosworth Naturally Aspirated V12 Hybrid", accel: "2.6 Seconds", speed: "354 km/h", price: "$3,500,000",
+                desc: "A street-legal adaptation of Formula 1 principles. Employs large venturi air tunnels running beneath the vehicle footprint to achieve incredible ground downforce."
+            },
+            {
+                brand: "Koenigsegg", model: "Jesko Absolut", power: "1,600 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1621135802920-133df287f89c?auto=format&fit=crop&w=600&q=80",
+                engine: "5.0L Twin-Turbocharged V8", accel: "2.5 Seconds", speed: "531 km/h", price: "$3,000,000",
+                desc: "The fastest structural automotive design Koenigsegg intends to ever build. Devoid of major wings to lock down an exceptionally slippery 0.278 aerodynamic rating."
+            },
+            {
+                brand: "Pagani", model: "Utopia", power: "852 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=600&q=60",
+                engine: "6.0L Twin-Turbocharged AMG V12", accel: "3.0 Seconds", speed: "350 km/h", price: "$2,500,000",
+                desc: "A pure artistic celebration of mechanical control systems. Features an intricate gated manual layout and carbo-titanium structural composite panels."
+            },
+            {
+                brand: "Nissan", model: "GT-R Nismo", power: "600 BHP", year: "2022",
+                image: "https://images.unsplash.com/photo-1566008889998-ab6a437a34e2?auto=format&fit=crop&w=600&q=80",
+                engine: "3.8L Twin-Turbocharged V6", accel: "2.5 Seconds", speed: "315 km/h", price: "$210,000",
+                desc: "Widely known around the world as Godzilla. This high-spec Nismo model deploys precise mechanical turbo components direct from global GT3 professional racing series."
+            },
+            {
+                brand: "Audi", model: "R8 V10 Performance", power: "612 BHP", year: "2021",
+                image: "https://images.unsplash.com/photo-1606220838315-056192d5e927?auto=format&fit=crop&w=600&q=80",
+                engine: "5.2L Naturally Aspirated V10", accel: "3.1 Seconds", speed: "331 km/h", price: "$196,000",
+                desc: "The historic send-off version to a legendary mid-engine masterpiece. Known for an incredible high-revving exhaust pitch that modern hybrid setups cannot mimic."
+            },
+            {
+                brand: "Chevrolet", model: "Corvette Z06 (C8)", power: "670 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=600&q=80",
+                engine: "5.5L LT6 Flat-Plane Crank V8", accel: "2.6 Seconds", speed: "313 km/h", price: "$105,300",
+                desc: "A monumental shift to mid-engine dynamics for the brand. Carries the single most powerful naturally-aspirated production V8 engine variant globally."
+            },
+            {
+                brand: "Lexus", model: "LFA", power: "552 BHP", year: "2012",
+                image: "https://images.unsplash.com/photo-1617469767053-d3b508a0d84d?auto=format&fit=crop&w=600&q=80",
+                engine: "4.8L Naturally Aspirated V10", accel: "3.6 Seconds", speed: "325 km/h", price: "$800,000",
+                desc: "Acclaimed engineering jewel featuring an exhaust tract dynamically tuned alongside acoustic experts to simulate the pitch of historic Grand Prix cars."
+            },
+            {
+                brand: "Rimac", model: "Nevera", power: "1,914 BHP", year: "2022",
+                image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80",
+                engine: "4 Liquid-Cooled Permanent Magnet Motors", accel: "1.81 Seconds", speed: "412 km/h", price: "$2,200,000",
+                desc: "The high-voltage marvel defining hyper-electric capabilities. Calculates ideal wheel stability numbers 100 times per second to guarantee continuous forward traction."
+            },
+            {
+                brand: "Mercedes-AMG", model: "ONE", power: "1,049 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=600&q=80",
+                engine: "1.6L E-Turbo V6 + 4 Electric Motors", accel: "2.9 Seconds", speed: "352 km/h", price: "$2,720,000",
+                desc: "Places an authentic, race-proven Formula 1 engine package directly within an operational street configuration with complex energy recovery mechanics."
+            },
+            {
+                brand: "BMW", model: "M4 CSL", power: "543 BHP", year: "2023",
+                image: "https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=600&q=80",
+                engine: "3.0L Twin-Turbocharged Inline-6", accel: "3.6 Seconds", speed: "307 km/h", price: "$139,900",
+                desc: "An aggressive weight-loss program version of the standard coupe. Removes rear seats and integrates stiffened track dampers to optimize mechanical tire response."
+            }
+        ];
+
+        const grid = document.getElementById('showroomGrid');
+        const modal = document.getElementById('infoModal');
+
+        function renderShowroom(data) {
+            grid.innerHTML = "";
+            data.forEach((car) => {
+                const trueIndex = carDatabase.findIndex(c => c.model === car.model);
+                const logoInitials = car.brand.substring(0, 2).toUpperCase();
+                
+                const card = document.createElement('div');
+                card.className = 'car-card';
+                card.onclick = () => showModal(trueIndex);
+                
+                card.innerHTML = `
+                    <div class="image-wrapper">
+                        <div class="fallback-ui">
+                            <div class="fallback-logo">${logoInitials}</div>
+                            <div class="fallback-text">${car.brand} Showcase</div>
+                        </div>
+                        <img src="${car.image}" alt="${car.brand} Asset View" onerror="this.style.display='none';">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-brand">${car.brand}</div>
+                        <div class="card-model">${car.model}</div>
+                        <div class="card-meta">
+                            <span>Year: <span class="meta-highlight">${car.year}</span></span>
+                            <span>Output: <span class="meta-highlight">${car.power}</span></span>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showModal(index) {
+            const vehicle = carDatabase[index];
+            const logoInitials = vehicle.brand.substring(0, 2).toUpperCase();
+            
+            const modalImg = document.getElementById('mImage');
+            const fallbackPanel = document.getElementById('mFallback');
+            
+            modalImg.style.display = 'block';
+            fallbackPanel.style.display = 'none';
+            
+            modalImg.onerror = function() {
+                modalImg.style.display = 'none';
+                document.getElementById('mFallbackLogo').innerText = logoInitials;
+                fallbackPanel.style.display = 'flex';
+            };
+            
+            modalImg.src = vehicle.image;
+            document.getElementById('mBrand').innerText = vehicle.brand;
+            document.getElementById('mTitle').innerText = vehicle.model;
+            document.getElementById('mDesc').innerText = vehicle.desc;
+            document.getElementById('sEngine').innerText = vehicle.engine;
+            document.getElementById('sPower').innerText = vehicle.power;
+            document.getElementById('sAccel').innerText = vehicle.accel;
+            document.getElementById('sSpeed').innerText = vehicle.speed;
+            document.getElementById('sYear').innerText = vehicle.year;
+            document.getElementById('sPrice').innerText = vehicle.price;
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function filterCars() {
+            const query = document.getElementById('search').value.toLowerCase();
+            const filtered = carDatabase.filter(car => 
+                car.brand.toLowerCase().includes(query) || 
+                car.model.toLowerCase().includes(query) ||
+                car.engine.toLowerCase().includes(query)
+            );
+            renderShowroom(filtered);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
+        });
+
+        renderShowroom(carDatabase);
+    </script>
+</body>
+</html>
